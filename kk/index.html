@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeFlow - プログラミング学習アプリ (要件 No.1~8 完全版)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Learning Stats -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Noto Sans JP', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .mobile-frame {
+      width: 100%;
+      max-width: 430px;
+      height: 880px;
+      max-height: 96vh;
+      border-radius: 44px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12), 0 0 0 12px #0f172a;
+      background-color: #ffffff;
+      overflow: hidden;
+      position: relative;
+    }
+    @media (max-width: 640px) {
+      .mobile-frame {
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .screen-fade {
+      animation: fadeIn 0.25s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-0 sm:p-4">
+
+  <!-- Mobile Device Container -->
+  <div class="mobile-frame flex flex-col justify-between bg-white">
+
+    <!-- Status Bar -->
+    <div class="w-full pt-3 px-7 flex justify-between items-center text-xs font-semibold text-slate-800 z-20 bg-white">
+      <span>9:41</span>
+      <!-- Dynamic Island / Notch -->
+      <div class="w-24 h-5 bg-slate-900 rounded-full mx-auto -mt-1 hidden sm:block"></div>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal"></i>
+        <i class="fa-solid fa-wifi"></i>
+        <i class="fa-solid fa-battery-full text-sm"></i>
+      </div>
+    </div>
+
+    <!-- MAIN VIEWPORT (5 SCENE CONTAINER) -->
+    <div class="flex-1 overflow-y-auto no-scrollbar relative bg-white">
+
+      <!-- ==========================================
+           SCREEN 1 (No. 1): 認証・ログイン画面
+      =========================================== -->
+      <section id="screen1" class="app-screen screen-fade p-6 flex flex-col justify-between min-h-full">
+        <div>
+          <!-- Header Banner -->
+          <div class="text-center mt-4 mb-6">
+            <div class="w-16 h-16 bg-brand-50 border border-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+              <i class="fa-solid fa-code text-brand-600 text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">CodeFlow</h1>
+            <p class="text-xs text-slate-500 mt-1">プログラミング学習・復習プラットフォーム</p>
+          </div>
+
+          <!-- Feature Tag -->
+          <div class="bg-blue-50 border border-blue-100 rounded-xl p-2.5 mb-5 flex items-center justify-between text-xs">
+            <span class="font-bold text-brand-700"><i class="fa-solid fa-circle-info mr-1"></i>要件 No.1</span>
+            <span class="text-slate-600">ユーザー登録 / ログイン</span>
+          </div>
+
+          <!-- Auth Tab Switcher -->
+          <div class="bg-slate-100 p-1 rounded-xl flex mb-5 text-xs font-bold">
+            <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition">ログイン</button>
+            <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-slate-500 transition">新規アカウント作成</button>
+          </div>
+
+          <!-- Form Area -->
+          <form onsubmit="event.preventDefault(); navigateTo('screen2');" class="space-y-3.5">
+            <div id="signup-name-field" class="hidden">
+              <label class="block text-xs font-bold text-slate-700 mb-1">お名前 (ニックネーム)</label>
+              <div class="relative">
+                <i class="fa-regular fa-user absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="text" placeholder="山田 太郎" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">メールアドレス</label>
+              <div class="relative">
+                <i class="fa-regular fa-envelope absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="email" value="alex.watson@example.com" placeholder="name@example.com" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 focus:bg-white transition" required>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-bold text-slate-700">パスワード</label>
+                <a href="#" class="text-[11px] text-brand-600 font-bold hover:underline">再設定</a>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="password" value="••••••••" class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 focus:bg-white transition" required>
+                <i class="fa-regular fa-eye-slash absolute right-3.5 top-3.5 text-slate-400 cursor-pointer"></i>
+              </div>
+            </div>
+
+            <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl shadow-md shadow-brand-500/20 text-xs transition flex items-center justify-center gap-2">
+              <span>ログインして学習を開始</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </form>
+
+          <!-- Social Auth Buttons -->
+          <div class="mt-6">
+            <div class="relative flex py-1 items-center">
+              <div class="flex-grow border-t border-slate-200"></div>
+              <span class="flex-shrink mx-3 text-[11px] text-slate-400 font-medium">SNSアカウントでログイン</span>
+              <div class="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mt-3">
+              <button onclick="navigateTo('screen2')" class="py-2.5 border border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+                <i class="fa-brands fa-google text-red-500 text-base"></i>
+              </button>
+              <button onclick="navigateTo('screen2')" class="py-2.5 border border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+                <i class="fa-brands fa-github text-slate-900 text-base"></i>
+              </button>
+              <button onclick="navigateTo('screen2')" class="py-2.5 border border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+                <i class="fa-brands fa-apple text-slate-900 text-base"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center py-2">
+          <p class="text-[10px] text-slate-400">区分: 共通 / 優先度: 高</p>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 2 (No. 2 & 3): コース選択 & コード演習
+      =========================================== -->
+      <section id="screen2" class="app-screen screen-fade p-4 hidden space-y-3.5">
+        <!-- Top Bar with Requirements Banner -->
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-bold text-slate-700">演習画面</span>
+          </div>
+          <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-2 py-0.5 rounded">要件 No.2 &amp; No.3</span>
+        </div>
+
+        <!-- Course & Language Selector (No. 2) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm space-y-2">
+          <label class="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-layer-group text-brand-600"></i>
+            言語・コース選択 (No. 2)
+          </label>
+          <select id="lang-select" onchange="changeLanguage()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl font-bold px-3 py-2 focus:outline-none focus:border-brand-500">
+            <option value="python">Python 3 入門 (forループ基礎)</option>
+            <option value="javascript">JavaScript ES6 (配列操作・高階関数)</option>
+            <option value="react">React (State管理とHooks)</option>
+          </select>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-bold">
+            <span id="lesson-title" class="text-slate-800">Lesson 4: range()と繰り返し</span>
+            <span class="text-brand-600">進捗 75%</span>
+          </div>
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-brand-600 rounded-full w-3/4 transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <!-- Problem Description Card (No. 3) -->
+        <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-3.5 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="bg-brand-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md">コード入力型 (No. 3)</span>
+            <span class="text-[10px] font-bold text-slate-500">難易度: 初級</span>
+          </div>
+          <h2 id="problem-title" class="text-xs font-bold text-slate-900 pt-1">問題: 1〜5までの数値を順に出力してください</h2>
+          <p id="problem-desc" class="text-[11px] text-slate-600 leading-relaxed">
+            `range()` 関数の適切な引数を入力して、1から5までの数値を出力するコードを完成させましょう。
+          </p>
+        </div>
+
+        <!-- Code Editor Simulator (No. 3) -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-800">
+          <div class="bg-slate-800/80 px-3.5 py-2 flex justify-between items-center text-xs text-slate-400 font-mono">
+            <span id="file-name"><i class="fa-solid fa-code text-brand-400 mr-1.5"></i>main.py</span>
+            <span class="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-sans">穴埋め形式</span>
+          </div>
+          <div id="code-box" class="p-3.5 font-mono text-xs text-slate-200 leading-6">
+            <div class="text-slate-500"># 1〜5の数値を出力</div>
+            <div>for i in <span class="text-amber-400 font-bold">range</span>(<input id="code-input" type="text" value="1, 6" class="w-20 bg-slate-800 border border-brand-500 text-brand-300 px-1.5 py-0.5 rounded text-center font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-400">):</div>
+            <div class="pl-4 text-emerald-400">print(i)</div>
+          </div>
+        </div>
+
+        <!-- Execution Console Output -->
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-3 font-mono text-xs">
+          <div class="text-[10px] font-sans font-bold text-slate-400 mb-1 flex items-center gap-1">
+            <i class="fa-solid fa-terminal text-slate-500"></i> コンソール出力 (Console)
+          </div>
+          <div id="console-output" class="text-slate-600 min-h-[44px] bg-white border border-slate-200 rounded-xl p-2 text-[11px]">
+            「実行」ボタンを押すと結果が表示されます。
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="grid grid-cols-2 gap-2.5 pt-0.5">
+          <button onclick="resetCode()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-rotate-left"></i> リセット
+          </button>
+          <button onclick="runCode()" class="py-2.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/20 flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-play text-[10px]"></i> 判定・コード実行
+          </button>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 3 (No. 4 & 5): 解説 & ブックマーク
+      =========================================== -->
+      <section id="screen3" class="app-screen screen-fade p-4 hidden space-y-3.5">
+        <!-- Requirements Header -->
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+          <span class="font-bold text-slate-700"><i class="fa-solid fa-square-check text-brand-600 mr-1.5"></i>採点＆解説</span>
+          <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-2 py-0.5 rounded">要件 No.4 &amp; No.5</span>
+        </div>
+
+        <!-- Result Status Banner (No. 4) -->
+        <div id="result-status-card" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-emerald-500 text-white rounded-xl flex items-center justify-center text-base font-black shadow-sm">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-xs">即時採点: 正解です！</h3>
+              <p class="text-[11px] text-emerald-700 font-medium">+20 XP 獲得 | 実行完了</p>
+            </div>
+          </div>
+          
+          <!-- Bookmark Action Button (No. 5) -->
+          <button id="bookmark-btn" onclick="toggleBookmark()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-amber-500 active:scale-90 transition shadow-sm" title="ブックマーク保存 (No. 5)">
+            <i id="bookmark-icon" class="fa-regular fa-bookmark text-base"></i>
+          </button>
+        </div>
+
+        <!-- Detailed Explanation Box (No. 4) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+          <h2 class="text-xs font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-brand-600"></i> 問題の解答と詳しい解説
+          </h2>
+
+          <div class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-xs leading-5">
+            <span class="text-slate-500"># 正解コード例</span><br>
+            for i in <span class="text-amber-400">range</span>(1, 6):<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;print(i)
+          </div>
+
+          <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+              <strong class="text-slate-800 block mb-0.5">① range(start, stop) の挙動</strong>
+              `range(1, 6)` は 1 以上 6 未満（1, 2, 3, 4, 5）の連続した数値を生成します。終了値（stop）に含まれない点にご注意ください。
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+              <strong class="text-slate-800 block mb-0.5">② 復習ワンポイント</strong>
+              引数を1つだけ渡した `range(5)` の場合、0から始まって 0, 1, 2, 3, 4 が生成されます。
+            </div>
+          </div>
+        </div>
+
+        <!-- Bookmark Indicator Toast Notification -->
+        <div id="bookmark-toast" class="hidden bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-2.5 text-xs flex items-center justify-between">
+          <span><i class="fa-solid fa-star text-amber-500 mr-1.5"></i>あとで見返す問題リストに保存しました！</span>
+          <span class="text-[10px] font-bold text-amber-600">要件 No.5</span>
+        </div>
+
+        <!-- Next Step Buttons -->
+        <div class="space-y-2 pt-1">
+          <button onclick="navigateTo('screen4')" class="w-full py-3 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 transition">
+            <span>復習アルゴリズム画面（No. 6）へ進む</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button onclick="navigateTo('screen2')" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
+            演習画面に戻る
+          </button>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 4 (No. 6): 復習アルゴリズム
+      =========================================== -->
+      <section id="screen4" class="app-screen screen-fade p-4 hidden space-y-3.5">
+        <!-- Requirements Header -->
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+          <span class="font-bold text-slate-700"><i class="fa-solid fa-rotate-right text-brand-600 mr-1.5"></i>復習アルゴリズム</span>
+          <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-2 py-0.5 rounded">要件 No.6</span>
+        </div>
+
+        <div>
+          <h2 class="text-xs font-bold text-slate-900">苦手・過去問の優先ピックアップ (No. 6)</h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">誤答率や復習タイミングに基づいて自動で再出題します。</p>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex gap-1.5 text-xs">
+          <button onclick="filterReview('all')" id="rf-all" class="px-3 py-1.5 bg-slate-900 text-white font-bold rounded-lg text-[11px] transition">すべて (3)</button>
+          <button onclick="filterReview('high')" id="rf-high" class="px-3 py-1.5 bg-slate-100 text-slate-600 font-bold rounded-lg text-[11px] hover:bg-slate-200 transition">優先度高 (2)</button>
+          <button onclick="filterReview('bookmark')" id="rf-bookmark" class="px-3 py-1.5 bg-slate-100 text-slate-600 font-bold rounded-lg text-[11px] hover:bg-slate-200 transition">ブックマーク (1)</button>
+        </div>
+
+        <!-- Problem Cards Container -->
+        <div class="space-y-2.5">
+          <!-- Item 1 -->
+          <div class="review-card bg-white border border-slate-200 rounded-2xl p-3 shadow-sm hover:border-brand-300 transition space-y-2" data-type="high">
+            <div class="flex justify-between items-center">
+              <span class="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold px-2 py-0.5 rounded">優先再出題 (正答率 25%)</span>
+              <span class="text-[10px] font-mono text-slate-400">Python</span>
+            </div>
+            <h3 class="text-xs font-bold text-slate-800">リスト内包表記と条件分岐</h3>
+            <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">間違えた日: 2日前</span>
+              <button onclick="navigateTo('screen2')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-xs transition">解き直す</button>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="review-card bg-white border border-slate-200 rounded-2xl p-3 shadow-sm hover:border-brand-300 transition space-y-2" data-type="high">
+            <div class="flex justify-between items-center">
+              <span class="bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold px-2 py-0.5 rounded">要復習 (正答率 50%)</span>
+              <span class="text-[10px] font-mono text-slate-400">JavaScript</span>
+            </div>
+            <h3 class="text-xs font-bold text-slate-800">Array.prototype.reduce の使い方</h3>
+            <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">間違えた日: 昨日</span>
+              <button onclick="navigateTo('screen2')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-xs transition">解き直す</button>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="review-card bg-white border border-slate-200 rounded-2xl p-3 shadow-sm hover:border-brand-300 transition space-y-2" data-type="bookmark">
+            <div class="flex justify-between items-center">
+              <span class="bg-blue-50 text-brand-700 border border-blue-100 text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-bookmark text-amber-500 mr-1"></i>保存した問題 (No.5)</span>
+              <span class="text-[10px] font-mono text-slate-400">Python</span>
+            </div>
+            <h3 class="text-xs font-bold text-slate-800">range() 関数の引数とステップ指定</h3>
+            <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">保存日: 本日</span>
+              <button onclick="navigateTo('screen2')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-xs transition">解き直す</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 5 (No. 7 & 8): 学習ログ & マイページ
+      =========================================== -->
+      <section id="screen5" class="app-screen screen-fade p-4 hidden space-y-3.5">
+        <!-- Requirements Header -->
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+          <span class="font-bold text-slate-700"><i class="fa-solid fa-user-gear text-brand-600 mr-1.5"></i>マイページ＆学習ログ</span>
+          <span class="text-[10px] bg-brand-100 text-brand-700 font-bold px-2 py-0.5 rounded">要件 No.7 &amp; No.8</span>
+        </div>
+
+        <!-- User Profile Card (No. 8) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-brand-600 text-white rounded-2xl flex items-center justify-center text-lg font-black shadow-sm">
+              AW
+            </div>
+            <div>
+              <h2 class="text-xs font-bold text-slate-900">Alex Watson</h2>
+              <p class="text-[11px] text-slate-500">Python &amp; Webエンジニアコース</p>
+              <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold px-1.5 py-0.5 rounded">🔥 12日連続学習中</span>
+            </div>
+          </div>
+          <button onclick="toggleSettingsModal()" class="p-2 text-slate-400 hover:text-slate-700 transition" title="設定変更 (No. 8)">
+            <i class="fa-solid fa-gear text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Learning Log Chart (No. 7) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm space-y-2">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-column text-brand-600"></i> 学習時間ログ (No. 7)
+            </h3>
+            <span class="text-[10px] text-slate-400 font-bold">今週: 合計 6.5時間</span>
+          </div>
+
+          <!-- Chart Canvas -->
+          <div class="w-full h-36">
+            <canvas id="learningChart"></canvas>
+          </div>
+        </div>
+
+        <!-- App Settings & Language Preferences (No. 8) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm space-y-2">
+          <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <i class="fa-solid fa-sliders text-brand-600"></i> 設定変更・マイページ (No. 8)
+          </h3>
+
+          <div class="space-y-2 text-xs pt-1">
+            <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl">
+              <span class="font-medium text-slate-700">メイン学習言語</span>
+              <span class="font-bold text-brand-600">Python 3</span>
+            </div>
+            <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl">
+              <span class="font-medium text-slate-700">毎日の学習リマインダー</span>
+              <input type="checkbox" checked class="w-4 h-4 accent-brand-600 rounded">
+            </div>
+            <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl">
+              <span class="font-medium text-slate-700">ダークモード</span>
+              <input type="checkbox" class="w-4 h-4 accent-brand-600 rounded">
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==========================================
+         FIXED BOTTOM NAVIGATION BAR (5 TABS)
+    =========================================== -->
+    <div class="w-full bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-30">
+      <button onclick="navigateTo('screen1')" id="nav-screen1" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+        <i class="fa-solid fa-right-to-bracket text-base"></i>
+        <span class="text-[9px] font-bold">ログイン</span>
+      </button>
+
+      <button onclick="navigateTo('screen2')" id="nav-screen2" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+        <i class="fa-solid fa-code text-base"></i>
+        <span class="text-[9px] font-bold">演習</span>
+      </button>
+
+      <button onclick="navigateTo('screen3')" id="nav-screen3" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+        <i class="fa-solid fa-circle-check text-base"></i>
+        <span class="text-[9px] font-bold">解説</span>
+      </button>
+
+      <button onclick="navigateTo('screen4')" id="nav-screen4" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+        <i class="fa-solid fa-rotate-right text-base"></i>
+        <span class="text-[9px] font-bold">復習</span>
+      </button>
+
+      <button onclick="navigateTo('screen5')" id="nav-screen5" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-brand-600 transition">
+        <i class="fa-solid fa-user text-base"></i>
+        <span class="text-[9px] font-bold">マイページ</span>
+      </button>
+    </div>
+
+    <!-- Home Bar Indicator -->
+    <div class="w-full bg-white pb-1.5 flex justify-center">
+      <div class="w-28 h-1 bg-slate-300 rounded-full"></div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    let isBookmarked = false;
+    let chartInstance = null;
+
+    // Navigation logic
+    function navigateTo(screenId) {
+      document.querySelectorAll('.app-screen').forEach(screen => {
+        screen.classList.add('hidden');
+      });
+
+      const activeScreen = document.getElementById(screenId);
+      if (activeScreen) {
+        activeScreen.classList.remove('hidden');
+      }
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-600');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeNav = document.getElementById(`nav-${screenId}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-400');
+        activeNav.classList.add('text-brand-600');
+      }
+
+      // Initialize Chart on Screen 5 load
+      if (screenId === 'screen5') {
+        setTimeout(initChart, 50);
+      }
+    }
+
+    // Auth tab toggle
+    function switchAuthTab(type) {
+      const loginBtn = document.getElementById('auth-tab-login');
+      const signupBtn = document.getElementById('auth-tab-signup');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const nameField = document.getElementById('signup-name-field');
+
+      if (type === 'login') {
+        loginBtn.className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition';
+        signupBtn.className = 'flex-1 py-2 rounded-lg text-slate-500 transition';
+        submitBtn.querySelector('span').innerText = 'ログインして学習を開始';
+        nameField.classList.add('hidden');
+      } else {
+        signupBtn.className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-800 transition';
+        loginBtn.className = 'flex-1 py-2 rounded-lg text-slate-500 transition';
+        submitBtn.querySelector('span').innerText = '新規アカウントを登録';
+        nameField.classList.remove('hidden');
+      }
+    }
+
+    // Language course select handler (No. 2)
+    function changeLanguage() {
+      const val = document.getElementById('lang-select').value;
+      const input = document.getElementById('code-input');
+      const title = document.getElementById('problem-title');
+      const desc = document.getElementById('problem-desc');
+      const fileName = document.getElementById('file-name');
+      const codeBox = document.getElementById('code-box');
+
+      if (val === 'javascript') {
+        fileName.innerHTML = '<i class="fa-brands fa-js text-amber-400 mr-1.5"></i>app.js';
+        title.innerText = "問題: 1〜5までの数値をコンソールに出力";
+        desc.innerText = "for ループの条件式を入力してください。";
+        codeBox.innerHTML = `
+          <div class="text-slate-500">// 1〜5を出力</div>
+          <div>for (let i = 1; <input id="code-input" type="text" value="i <= 5" class="w-20 bg-slate-800 border border-brand-500 text-brand-300 px-1.5 py-0.5 rounded text-center font-mono text-xs focus:outline-none">; i++) {</div>
+          <div class="pl-4 text-emerald-400">console.log(i);</div>
+          <div>}</div>
+        `;
+      } else if (val === 'react') {
+        fileName.innerHTML = '<i class="fa-brands fa-react text-sky-400 mr-1.5"></i>Counter.jsx';
+        title.innerText = "問題: Stateの更新処理を記述";
+        desc.innerText = "useState のセッター関数を入力してください。";
+        codeBox.innerHTML = `
+          <div class="text-slate-500">// カウントアップ関数</div>
+          <div>const increment = () => {</div>
+          <div class="pl-4 text-emerald-400"><input id="code-input" type="text" value="setCount(count + 1)" class="w-36 bg-slate-800 border border-brand-500 text-brand-300 px-1.5 py-0.5 rounded text-center font-mono text-xs focus:outline-none">;</div>
+          <div>};</div>
+        `;
+      } else {
+        fileName.innerHTML = '<i class="fa-solid fa-code text-brand-400 mr-1.5"></i>main.py';
+        title.innerText = "問題: 1〜5までの数値を順に出力してください";
+        desc.innerText = "range() 関数の適切な引数を入力して、1から5までの数値を出力するコードを完成させましょう。";
+        codeBox.innerHTML = `
+          <div class="text-slate-500"># 1〜5の数値を出力</div>
+          <div>for i in <span class="text-amber-400 font-bold">range</span>(<input id="code-input" type="text" value="1, 6" class="w-20 bg-slate-800 border border-brand-500 text-brand-300 px-1.5 py-0.5 rounded text-center font-mono text-xs focus:outline-none">):</div>
+          <div class="pl-4 text-emerald-400">print(i)</div>
+        `;
+      }
+    }
+
+    // Code Execution Handler (No. 3 & 4)
+    function runCode() {
+      const inputElem = document.getElementById('code-input');
+      const consoleOut = document.getElementById('console-output');
+      const val = inputElem ? inputElem.value.trim() : '';
+
+      if (val === '1, 6' || val === 'i <= 5' || val === 'setCount(count + 1)') {
+        consoleOut.className = "text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-2 font-mono text-xs";
+        consoleOut.innerHTML = "1<br>2<br>3<br>4<br>5<br><span class='text-[10px] text-emerald-600 font-sans font-bold'>[正解] 即時採点成功！ (No. 4へ画面遷移します)</span>";
+        setTimeout(() => {
+          navigateTo('screen3');
+        }, 700);
+      } else {
+        consoleOut.className = "text-red-600 bg-red-50 border border-red-200 rounded-xl p-2 font-mono text-xs";
+        consoleOut.innerHTML = "エラー: 判定に失敗しました。<br>ヒント: 正しい引数や条件式を入力してください。";
+      }
+    }
+
+    function resetCode() {
+      changeLanguage();
+      const consoleOut = document.getElementById('console-output');
+      consoleOut.className = "text-slate-600 bg-white border border-slate-200 rounded-xl p-2 text-[11px]";
+      consoleOut.innerText = "「実行」ボタンを押すと結果が表示されます。";
+    }
+
+    // Bookmark Toggle (No. 5)
+    function toggleBookmark() {
+      isBookmarked = !isBookmarked;
+      const btn = document.getElementById('bookmark-btn');
+      const icon = document.getElementById('bookmark-icon');
+      const toast = document.getElementById('bookmark-toast');
+
+      if (isBookmarked) {
+        btn.className = "w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center transition shadow-md";
+        icon.className = "fa-solid fa-bookmark text-base";
+        toast.classList.remove('hidden');
+      } else {
+        btn.className = "w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-amber-500 transition shadow-sm";
+        icon.className = "fa-regular fa-bookmark text-base";
+        toast.classList.add('hidden');
+      }
+    }
+
+    // Review Algorithm Filter (No. 6)
+    function filterReview(type) {
+      document.querySelectorAll('.review-card').forEach(card => {
+        if (type === 'all') {
+          card.style.display = 'block';
+        } else if (card.getAttribute('data-type') === type) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Learning Stats Chart (No. 7)
+    function initChart() {
+      const ctx = document.getElementById('learningChart');
+      if (!ctx) return;
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['月', '火', '水', '木', '金', '土', '日'],
+          datasets: [{
+            label: '学習時間 (分)',
+            data: [45, 60, 30, 90, 120, 20, 25],
+            backgroundColor: '#2563eb',
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    window.onload = function() {
+      navigateTo('screen1');
+    };
+  </script>
+</body>
+</html>
